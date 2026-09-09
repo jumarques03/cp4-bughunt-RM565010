@@ -10,7 +10,7 @@
 
 | Campo | |
 |---|---|
-| **Total de bugs corrigidos** | 3 / 12 |
+| **Total de bugs corrigidos** | 4 / 12 |
 | **Total de ajustes de Clean Code** | 0 / 6 |
 
 ---
@@ -25,7 +25,7 @@
 | bug01 | Testei o cálculo de promoção do `Filme` e o valor ficava maior em vez de menor | `model/Filme.java`, método `aplicarPromocao` — usava `preco * 1.2` | Troquei `preco * 1.2` por `preco * 0.8` | Interface como contrato (Aula 8/9): a interface `Promocionavel` documenta 20% de desconto, e a implementação aplicava um acréscimo, violando o contrato |
 | bug02 | Percebi que o construtor de `Serie` não inicializava os campos herdados de `Conteudo` e nem recebia o parâmetro `disponivel` | `model/Serie.java`, construtor de `Serie` — não chamava `super(...)` e faltava o parâmetro `boolean disponivel` na assinatura | Adicionei `boolean disponivel` na assinatura do construtor e chamei `super(titulo, categoria, duracaoMinutos, classificacaoEtaria, disponivel)` no início | Herança e construtores (Aula 6/7): construtor de subclasse precisa chamar `super(...)` para inicializar os campos definidos na superclasse |
 | bug03 | O preço de série sempre calculava como se fosse `9.90` fixo, ignorando o valor por temporada | `model/Serie.java`, método `calcularPrecoAluguel(double desconto)` — assinatura diferente da superclasse (`Conteudo.calcularPrecoAluguel()` sem parâmetro), então era overload e não override | Removi o parâmetro `desconto` e adicionei `@Override`, deixando a assinatura idêntica à da superclasse | Override vs Overload (Aula 7): mesmo nome com parâmetros diferentes cria um método novo em vez de substituir o da superclasse; `@Override` obriga o compilador a validar que a assinatura realmente bate |
-| bug04 | | | | |
+| bug04 | O cadastro de série não compilava mais depois de corrigir o construtor (bug02) | `controller/ConteudoController.java`, método `cadastrarSerie` — chamava `new Serie(...)` com a assinatura antiga do construtor, sem passar `disponivel` | Adicionei `serie.isDisponivel()` na posição correta da chamada ao construtor | Bug em cascata entre camadas (Controller vs Model — Aula 13): corrigir o construtor no model expôs um bug que já existia no controller, mas que antes "coincidia" com a assinatura errada |
 | bug05 | | | | |
 | bug06 | | | | |
 | bug07 | | | | |
