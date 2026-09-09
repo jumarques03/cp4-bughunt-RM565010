@@ -10,7 +10,7 @@
 
 | Campo | |
 |---|---|
-| **Total de bugs corrigidos** | 4 / 12 |
+| **Total de bugs corrigidos** | 5 / 12 |
 | **Total de ajustes de Clean Code** | 0 / 6 |
 
 ---
@@ -26,7 +26,7 @@
 | bug02 | Percebi que o construtor de `Serie` não inicializava os campos herdados de `Conteudo` e nem recebia o parâmetro `disponivel` | `model/Serie.java`, construtor de `Serie` — não chamava `super(...)` e faltava o parâmetro `boolean disponivel` na assinatura | Adicionei `boolean disponivel` na assinatura do construtor e chamei `super(titulo, categoria, duracaoMinutos, classificacaoEtaria, disponivel)` no início | Herança e construtores (Aula 6/7): construtor de subclasse precisa chamar `super(...)` para inicializar os campos definidos na superclasse |
 | bug03 | O preço de série sempre calculava como se fosse `9.90` fixo, ignorando o valor por temporada | `model/Serie.java`, método `calcularPrecoAluguel(double desconto)` — assinatura diferente da superclasse (`Conteudo.calcularPrecoAluguel()` sem parâmetro), então era overload e não override | Removi o parâmetro `desconto` e adicionei `@Override`, deixando a assinatura idêntica à da superclasse | Override vs Overload (Aula 7): mesmo nome com parâmetros diferentes cria um método novo em vez de substituir o da superclasse; `@Override` obriga o compilador a validar que a assinatura realmente bate |
 | bug04 | O cadastro de série não compilava mais depois de corrigir o construtor (bug02) | `controller/ConteudoController.java`, método `cadastrarSerie` — chamava `new Serie(...)` com a assinatura antiga do construtor, sem passar `disponivel` | Adicionei `serie.isDisponivel()` na posição correta da chamada ao construtor | Bug em cascata entre camadas (Controller vs Model — Aula 13): corrigir o construtor no model expôs um bug que já existia no controller, mas que antes "coincidia" com a assinatura errada |
-| bug05 | | | | |
+| bug05 | Documentário sempre custava R$ 9,90 no cálculo de aluguel, mas o contrato exige gratuidade | `model/Documentario.java` — a classe não sobrescrevia `calcularPrecoAluguel()`, então herdava o valor fixo `9.90` de `Conteudo` | Adicionei `@Override public double calcularPrecoAluguel() { return 0.0; }` na classe `Documentario` | Herança e override (Aula 7): um bug por ausência de método é mais difícil de notar do que um método com erro, porque a classe parece "limpa" numa leitura rápida |
 | bug06 | | | | |
 | bug07 | | | | |
 | bug08 | | | | |
