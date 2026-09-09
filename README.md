@@ -1,23 +1,17 @@
 # Checkpoint 4 — Bug Hunt StreamFIAP
 
-> Copie este arquivo para a raiz do seu repositório com o nome **README.md**
-> e preencha todas as seções.
-
 ## Identificação
 
-**Grupo:** ___
+**Grupo:** RM565010 (individual)
 
 | Integrante | RM | Turma |
 |---|---|---|
-| | | |
-| | | |
-| | | |
-| | | |
+| Júlia Souza Marques | RM565010 | 2CCPW |
 
 | Campo | |
 |---|---|
-| **Total de bugs corrigidos** | ___ / 12 |
-| **Total de ajustes de Clean Code** | ___ / 6 |
+| **Total de bugs corrigidos** | 1 / 12 |
+| **Total de ajustes de Clean Code** | 0 / 6 |
 
 ---
 
@@ -28,7 +22,7 @@
 
 | # | Sintoma observado (o que fiz/vi) | Causa raiz (arquivo e linha aproximada) | Correção aplicada | Conceito da disciplina |
 |---|---|---|---|---|
-| bug01 | | | | |
+| bug01 | Testei o cálculo de promoção do `Filme` e o valor ficava maior em vez de menor | `model/Filme.java`, método `aplicarPromocao` — usava `preco * 1.2` | Troquei `preco * 1.2` por `preco * 0.8` | Interface como contrato (Aula 8/9): a interface `Promocionavel` documenta 20% de desconto, e a implementação aplicava um acréscimo, violando o contrato |
 | bug02 | | | | |
 | bug03 | | | | |
 | bug04 | | | | |
@@ -65,11 +59,15 @@ usa `ConteudoRepository`). Explique por que o Spring precisa gerenciar esses obj
 em vez de criarmos com `new ConteudoRepository()`. O que exatamente o Spring faz ao
 injetar um bean, e por que isso não funcionaria com um `new` comum?
 
+_(sua resposta aqui)_
+
 ### 2. JDBC vs Spring Data JPA (Aulas 12 e 13)
 Na Aula 12 escrevemos um `ProdutoDAO` na mão com `Connection`, `PreparedStatement` e
 `ResultSet`. Aqui o `ConteudoRepository` tem 2 linhas e faz CRUD completo. Compare as
 duas abordagens: o que o Spring Data JPA automatiza, o que o JDBC/DAO ainda resolve
 melhor, e como o `findByCategoria` consegue funcionar sem implementação.
+
+_(sua resposta aqui)_
 
 ### 3. Exceções checked vs unchecked (Aula 11)
 A `ClassificacaoIndicativaException` estourava como um erro genérico do servidor,
@@ -77,10 +75,14 @@ sem mensagem útil para o cliente. Explique a diferença entre `extends Exceptio
 `extends RuntimeException` no contexto desse bug, e como você fez a mensagem da
 regra (classificação indicativa) chegar de forma clara ao cliente da API.
 
+_(sua resposta aqui)_
+
 ### 4. Sobrescrita vs sobrecarga (Aula 7)
 Um dos bugs compilava sem nenhum erro: o método da `Serie` parecia sobrescrever
 `calcularPrecoAluguel`, mas na verdade sobrecarregava. Explique a diferença entre
 override e overload nesse caso e por que a anotação `@Override` teria impedido o bug.
+
+_(sua resposta aqui)_
 
 ### 5. Onde blindar o objeto? (Aulas 3, 4 e 13)
 Vimos bugs de dados inválidos aceitos (duração negativa, créditos negativos, campos
@@ -88,11 +90,15 @@ nulos). Em quais lugares (construtor, setter, método do model) cada tipo de val
 deve ficar? Justifique usando os bugs que você encontrou e explique por que validar só
 em um lugar não foi suficiente.
 
+_(sua resposta aqui)_
+
 ### 6. Abstração e interface (Aulas 8 e 9)
 `Conteudo` é abstrata e `Promocionavel` é uma interface. Explique a diferença de
 propósito entre as duas nesse projeto e o que mudaria no código se o Documentário
 passasse a ter promoções — quais classes/linhas seriam tocadas e quais ficariam
 intactas? O que isso diz sobre o design do sistema?
+
+_(sua resposta aqui)_
 
 ---
 
@@ -101,5 +107,6 @@ intactas? O que isso diz sobre o design do sistema?
 Alguma dificuldade, dúvida ou comentário sobre o checkpoint?
 
 ```
+
 
 ```
