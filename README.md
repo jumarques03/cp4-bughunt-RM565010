@@ -10,7 +10,7 @@
 
 | Campo | |
 |---|---|
-| **Total de bugs corrigidos** | 9 / 12 |
+| **Total de bugs corrigidos** | 10 / 12 |
 | **Total de ajustes de Clean Code** | 0 / 6 |
 
 ---
@@ -31,7 +31,7 @@
 | bug07 | O sistema recusava aluguéis mesmo quando o usuário tinha créditos de sobra | `model/Usuario.java`, método `temCreditosSuficientes` — a condição era `preco >= this.creditos`, que retorna `true` (tem créditos) justamente quando o preço é maior que o saldo | Troquei `preco >= this.creditos` por `preco <= this.creditos` | Lógica booleana / operadores relacionais (Aula 3): a condição estava com o operador invertido, fazendo o método dizer o oposto do que seu próprio nome promete |
 | bug08 | O método `alugar` nunca checava se o conteúdo estava disponível — dava pra alugar algo marcado como indisponível | `model/Usuario.java`, método `alugar` — faltava uma validação de `c.isDisponivel()` antes de prosseguir com o aluguel | Adicionei `if (!c.isDisponivel()) { throw new ConteudoIndisponivelException(...); }` como primeira checagem do método, antes da classificação etária | Fail Fast / regra de negócio no model (Aula 11): a regra "conteúdo indisponível não se aluga" existia no contrato mas não no código; validar cedo evita processar o resto do método com dado inválido |
 | bug09 | Cadastro de usuário retornava `500 Internal Server Error` sem mensagem clara | `model/Usuario.java`, campo `id` — tinha só `@Id`, sem `@GeneratedValue(strategy = GenerationType.IDENTITY)`, diferente de `Conteudo`. O Hibernate tentava inserir `id = null`, e o Oracle recusava (`ORA-01400: não é possível inserir NULL`) | Adicionei `@GeneratedValue(strategy = GenerationType.IDENTITY)` acima de `@Id`. Também precisei apagar a tabela `usuarios` antiga no Oracle (via DBeaver) e deixar o Hibernate recriá-la, porque `ddl-auto=update` não consegue converter uma coluna existente para IDENTITY | Mapeamento JPA / geração de chave primária (Aula 13): sem `@GeneratedValue`, o JPA espera que o próprio código forneça o id, então salvar uma entidade nova sem id explícito quebra a inserção no banco |
-| bug10 | | | | |
+| bug10 | Tentar alugar um conteúdo com idade insuficiente retornava `500 Internal Server Error` genérico, sem explicar o motivo | `exception/GlobalExceptionHandler.java` — tinha `@ExceptionHandler` para `ConteudoNaoEncontradoException`, `CreditosInsuficientesException` e `ConteudoIndisponivelException`, mas faltava um handler para `ClassificacaoIndicativaException` | Adicionei `@ExceptionHandler(ClassificacaoIndicativaException.class)` retornando `403 Forbidden` com a mensagem da exceção | Tratamento centralizado de exceções (Aula 11 + 13): a exceção existia e era lançada corretamente no model, mas sem um handler registrado o Spring devolve 500 genérico por padrão para qualquer exceção não mapeada |
 | bug11 | | | | |
 | bug12 | | | | |
 
