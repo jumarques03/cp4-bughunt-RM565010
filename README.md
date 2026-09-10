@@ -10,7 +10,7 @@
 
 | Campo | |
 |---|---|
-| **Total de bugs corrigidos** | 6 / 12 |
+| **Total de bugs corrigidos** | 7 / 12 |
 | **Total de ajustes de Clean Code** | 0 / 6 |
 
 ---
@@ -28,7 +28,7 @@
 | bug04 | O cadastro de série não compilava mais depois de corrigir o construtor (bug02) | `controller/ConteudoController.java`, método `cadastrarSerie` — chamava `new Serie(...)` com a assinatura antiga do construtor, sem passar `disponivel` | Adicionei `serie.isDisponivel()` na posição correta da chamada ao construtor | Bug em cascata entre camadas (Controller vs Model — Aula 13): corrigir o construtor no model expôs um bug que já existia no controller, mas que antes "coincidia" com a assinatura errada |
 | bug05 | Documentário sempre custava R$ 9,90 no cálculo de aluguel, mas o contrato exige gratuidade | `model/Documentario.java` — a classe não sobrescrevia `calcularPrecoAluguel()`, então herdava o valor fixo `9.90` de `Conteudo` | Adicionei `@Override public double calcularPrecoAluguel() { return 0.0; }` na classe `Documentario` | Herança e override (Aula 7): um bug por ausência de método é mais difícil de notar do que um método com erro, porque a classe parece "limpa" numa leitura rápida |
 | bug06 | O nome do usuário nunca era salvo — vinha sempre nulo depois do cadastro | `model/Usuario.java`, construtor de `Usuario` — a linha `nome = nome` atribuía o parâmetro a ele mesmo, não ao campo da instância (faltava `this.`) | Troquei `nome = nome` por `this.nome = nome` | Shadowing de variável (Aula 3/6): quando o parâmetro do construtor tem o mesmo nome do atributo, é preciso usar `this.` para diferenciar o campo da instância do parâmetro local |
-| bug07 | | | | |
+| bug07 | O sistema recusava aluguéis mesmo quando o usuário tinha créditos de sobra | `model/Usuario.java`, método `temCreditosSuficientes` — a condição era `preco >= this.creditos`, que retorna `true` (tem créditos) justamente quando o preço é maior que o saldo | Troquei `preco >= this.creditos` por `preco <= this.creditos` | Lógica booleana / operadores relacionais (Aula 3): a condição estava com o operador invertido, fazendo o método dizer o oposto do que seu próprio nome promete |
 | bug08 | | | | |
 | bug09 | | | | |
 | bug10 | | | | |
