@@ -59,16 +59,16 @@ usa `ConteudoRepository`). Explique por que o Spring precisa gerenciar esses obj
 em vez de criarmos com `new ConteudoRepository()`. O que exatamente o Spring faz ao
 injetar um bean, e por que isso não funcionaria com um `new` comum?
 
-`ConteudoRepository` é uma interface — ela não tem corpo de método, só a assinatura de
-`findByCategoria`. Não daria nem para escrever `new ConteudoRepository()`, porque não
-existe implementação minha para instanciar. Quem cria essa implementação em tempo de
-execução (um proxy que sabe conversar com o banco via JPA/Hibernate) é o próprio Spring,
-quando sobe o contexto da aplicação. O `@Autowired` em `ConteudoController` diz "não
-quero criar isso na mão, me entrega uma instância pronta e configurada". O Spring
-resolve essa dependência, injeta o mesmo bean (por padrão um singleton) em todo lugar
-que precisar dele, e ainda cuida do ciclo de vida (abrir conexão, transação, etc.). Se
-eu tentasse `new` um repository, eu teria que implementar manualmente toda a lógica de
-acesso a dados que o Spring Data JPA gera sozinho a partir da interface.
+ConteudoRepository é uma interface, não tem corpo de método — só a assinatura de
+findByCategoria. Não dá nem pra fazer new ConteudoRepository(), porque não existe
+implementação minha pra instanciar. Quem cria essa implementação em tempo de
+execução (um proxy que conversa com o banco via JPA/Hibernate) é o Spring, quando
+sobe o contexto da aplicação. O @Autowired em ConteudoController diz "me entrega
+uma instância pronta, não vou criar isso na mão". O Spring resolve a dependência,
+injeta o mesmo bean (por padrão um singleton) em todo lugar que precisar dele, e
+cuida do ciclo de vida inteiro (conexão, transação, etc). Se eu tentasse um new
+manual desse repository, teria que implementar sozinha toda a lógica de acesso a
+dados que o Spring Data JPA já gera a partir da interface.
 
 ### 2. JDBC vs Spring Data JPA (Aulas 12 e 13)
 Na Aula 12 escrevemos um `ProdutoDAO` na mão com `Connection`, `PreparedStatement` e
@@ -76,18 +76,18 @@ Na Aula 12 escrevemos um `ProdutoDAO` na mão com `Connection`, `PreparedStateme
 duas abordagens: o que o Spring Data JPA automatiza, o que o JDBC/DAO ainda resolve
 melhor, e como o `findByCategoria` consegue funcionar sem implementação.
 
-No `ProdutoDAO` eu escrevia à mão a query SQL, abria a `Connection`, montava o
-`PreparedStatement` com os parâmetros, executava, percorria o `ResultSet` e convertia
-cada linha em objeto — e repetia isso para cada operação (inserir, buscar, atualizar,
-deletar). O `ConteudoRepository` só declara `extends JpaRepository<Conteudo, Long>` e
-já ganha `save`, `findAll`, `findById`, `deleteById` etc. prontos, sem escrever uma
-linha de SQL. O `findByCategoria(String categoria)` funciona sem implementação porque
-o Spring Data JPA usa um mecanismo de *query derivation*: ele lê o nome do método,
-reconhece o padrão `findBy<NomeDoCampo>` e monta a query JPQL/SQL automaticamente na
-inicialização. O JDBC/DAO ainda vale a pena quando a query é muito específica, precisa
-de tuning fino de performance, ou usa recursos do banco que o JPA não expõe bem — o
-Spring Data JPA automatiza o caso comum (CRUD e buscas simples), mas quem quer controle
-total sobre a query ainda pode cair para JDBC ou `@Query` nativa.
+No ProdutoDAO eu escrevia a query SQL à mão, abria a Connection, montava o
+PreparedStatement com os parâmetros, executava, percorria o ResultSet e convertia
+cada linha em objeto — repetindo isso pra cada operação (inserir, buscar,
+atualizar, deletar). O ConteudoRepository só declara extends
+JpaRepository<Conteudo, Long> e já ganha save, findAll, findById, deleteById
+prontos, sem uma linha de SQL. O findByCategoria(String categoria) funciona sem
+implementação porque o Spring Data JPA usa query derivation: lê o nome do método,
+reconhece o padrão findBy<NomeDoCampo> e monta a query JPQL/SQL sozinho na
+inicialização. O JDBC/DAO ainda vale quando a query é muito específica, precisa de
+ajuste fino de performance, ou usa recurso do banco que o JPA não expõe bem — o
+Spring Data JPA automatiza o caso comum, mas quem quer controle total sobre a
+query cai pro JDBC ou pra uma consulta nativa.
 
 ### 3. Exceções checked vs unchecked (Aula 11)
 A `ClassificacaoIndicativaException` estourava como um erro genérico do servidor,
@@ -95,22 +95,21 @@ sem mensagem útil para o cliente. Explique a diferença entre `extends Exceptio
 `extends RuntimeException` no contexto desse bug, e como você fez a mensagem da
 regra (classificação indicativa) chegar de forma clara ao cliente da API.
 
-Uma exceção `checked` (`extends Exception`) obriga quem chama o método a tratá-la
-explicitamente com `try/catch` ou repassar com `throws` — o compilador não deixa
-compilar sem isso. Uma `unchecked` (`extends RuntimeException`) não tem essa exigência:
-ela pode subir livremente pela pilha de chamadas até encontrar alguém que trate. No
-bug10/bug11 desse projeto, a `ClassificacaoIndicativaException` era `checked`, o que
-forçava `Usuario.alugar` e `AluguelController.alugar` a declararem
-`throws ClassificacaoIndicativaException` — mas isso não resolvia o problema real, que
-era não existir nenhum `@ExceptionHandler` para ela no `GlobalExceptionHandler`, então
-o Spring devolvia 500 genérico mesmo com o `throws` lá. A correção teve duas partes:
-primeiro adicionei o handler (`@ExceptionHandler(ClassificacaoIndicativaException.class)`
-retornando 403 com a mensagem da exceção), e depois, para deixar o projeto consistente
-com as outras exceções de domínio (`ConteudoIndisponivelException`,
-`ConteudoNaoEncontradoException`, `CreditosInsuficientesException`), troquei
-`extends Exception` por `extends RuntimeException`, removendo o `throws` desnecessário
-das assinaturas. Hoje a mensagem da regra de negócio chega ao cliente da API como um
-JSON `{"erro": "..."}` com status HTTP apropriado, em vez de um 500 sem explicação.
+Uma exceção checked (extends Exception) obriga quem chama o método a tratá-la com
+try/catch ou repassar com throws — o compilador não deixa compilar sem isso. Uma
+unchecked (extends RuntimeException) não tem essa exigência, sobe livre pela pilha
+até alguém tratar. Nesse projeto, ClassificacaoIndicativaException era checked, o
+que forçava Usuario.alugar e AluguelController.alugar a declararem throws
+ClassificacaoIndicativaException — só que isso não resolvia o problema real, que
+era não existir nenhum @ExceptionHandler pra ela no GlobalExceptionHandler. Por
+isso o Spring devolvia 500 genérico mesmo com o throws lá. Corrigi em duas etapas:
+primeiro adicionei o handler (@ExceptionHandler(ClassificacaoIndicativaException.class)
+retornando 403 com a mensagem da exceção), depois, pra deixar consistente com as
+outras exceções de domínio (ConteudoIndisponivelException, ConteudoNaoEncontradoException,
+CreditosInsuficientesException), troquei extends Exception por extends
+RuntimeException e removi o throws desnecessário das assinaturas. A mensagem da
+regra de negócio agora chega ao cliente como JSON {"erro": "..."} com status HTTP
+apropriado, em vez de um 500 sem explicação.
 
 ### 4. Sobrescrita vs sobrecarga (Aula 7)
 Um dos bugs compilava sem nenhum erro: o método da `Serie` parecia sobrescrever
@@ -119,19 +118,18 @@ override e overload nesse caso e por que a anotação `@Override` teria impedido
 
 Override é quando uma subclasse reimplementa um método da superclasse com a mesma
 assinatura (nome + parâmetros), substituindo o comportamento herdado. Overload é
-quando existem métodos com o mesmo nome, mas parâmetros diferentes — são métodos
-distintos, não um substituindo o outro. No bug03, `Conteudo.calcularPrecoAluguel()` não
-recebe parâmetro, mas `Serie` tinha `calcularPrecoAluguel(double desconto)`. Como a
-assinatura era diferente, o Java não via ali um override e sim um método novo
-(overload): a classe `Serie` continuava com dois métodos `calcularPrecoAluguel` —
-o herdado (sem parâmetro, retornando o valor fixo `9.90`) e o novo (com parâmetro,
-nunca chamado por quem usava `Conteudo` de forma polimórfica). Isso compilava sem erro
-porque overload é uma coisa totalmente válida em Java, só que não fazia o que a
-intenção do código sugeria. Se eu tivesse colocado `@Override` no método antigo da
-`Serie`, o compilador teria acusado erro imediatamente, porque não existe nenhum
-método na superclasse com aquela assinatura (com o parâmetro `desconto`) para
-sobrescrever — o `@Override` funciona como uma trava que obriga o compilador a
-confirmar que a assinatura realmente bate com a da superclasse.
+quando existem métodos com o mesmo nome mas parâmetros diferentes — são métodos
+distintos, um não substitui o outro. No bug03, Conteudo.calcularPrecoAluguel() não
+recebe parâmetro, mas Serie tinha calcularPrecoAluguel(double desconto). Assinatura
+diferente = o Java não via ali um override, via um método novo (overload): a classe
+Serie ficava com dois métodos calcularPrecoAluguel — o herdado (sem parâmetro,
+retornando o valor fixo 9.90) e o novo (com parâmetro, nunca chamado por quem usava
+Conteudo de forma polimórfica). Compilava sem erro porque overload é totalmente
+válido em Java, só não fazia o que a intenção do código sugeria. Se eu tivesse
+colocado @Override no método da Serie, o compilador teria acusado erro na hora,
+porque não existe nenhum método na superclasse com aquela assinatura (com o
+parâmetro desconto) pra sobrescrever — o @Override trava justamente isso: obriga o
+compilador a confirmar que a assinatura bate com a da superclasse.
 
 ### 5. Onde blindar o objeto? (Aulas 3, 4 e 13)
 Vimos bugs de dados inválidos aceitos (duração negativa, créditos negativos, campos
@@ -139,22 +137,21 @@ nulos). Em quais lugares (construtor, setter, método do model) cada tipo de val
 deve ficar? Justifique usando os bugs que você encontrou e explique por que validar só
 em um lugar não foi suficiente.
 
-Cada camada protege contra uma entrada diferente, então não dá para confiar em só um
-ponto. O construtor deve validar o que é exigido para o objeto nascer num estado
-consistente (por exemplo, `Conteudo` e `Usuario` recebem `duracaoMinutos`/`creditos`
-iniciais e poderiam recusar valores negativos já na criação). O setter deve repetir
-essa validação, porque o objeto já existe e alguém pode chamar `setDuracaoMinutos(-10)`
-depois — é exatamente por isso que o clean05 (tornar `duracaoMinutos` `private` em
-`Conteudo`) importa: com o campo público, nem construtor nem setter conseguiam
-interceptar uma atribuição direta como `conteudo.duracaoMinutos = -10`, então blindar
-só no construtor não adiantava nada. Já a regra de negócio (não confundir com validação
-de dado) deve ficar no método do model que a representa: `temCreditosSuficientes` e a
-checagem de `isDisponivel()`/classificação etária dentro de `Usuario.alugar` (bug07 e
-bug08) são exemplos — é lógica de domínio, não formato de dado, e só faz sentido no
-momento da operação. Ou seja: construtor e setter blindam contra estado inválido do
-objeto isoladamente; o método de negócio blinda contra uma operação inválida dado o
-estado atual dos objetos envolvidos. Validar em um único lugar não basta porque cada
-um cobre uma porta de entrada diferente para o dado incorreto.
+Cada camada protege contra uma entrada diferente, não dá pra confiar em só um
+ponto. O construtor valida o que é exigido pro objeto nascer num estado consistente
+(Conteudo e Usuario recebem duracaoMinutos/creditos iniciais e poderiam recusar
+valores negativos já na criação). O setter repete essa validação, porque o objeto
+já existe e alguém pode chamar setDuracaoMinutos(-10) depois — é por isso que o
+clean05 (tornar duracaoMinutos private em Conteudo) importa: com o campo público,
+nem construtor nem setter conseguiam interceptar uma atribuição direta como
+conteudo.duracaoMinutos = -10, então blindar só no construtor não adiantava nada.
+Já a regra de negócio (diferente de validação de dado) fica no método do model que
+a representa: temCreditosSuficientes e a checagem de isDisponivel()/classificação
+etária dentro de Usuario.alugar (bug07 e bug08) são exemplos disso — é lógica de
+domínio, não formato de dado, só faz sentido no momento da operação. Construtor e
+setter blindam o estado do objeto isoladamente; o método de negócio blinda a
+operação, dado o estado atual dos objetos envolvidos. Validar em um lugar só não
+basta porque cada um cobre uma porta de entrada diferente pro dado incorreto.
 
 ### 6. Abstração e interface (Aulas 8 e 9)
 `Conteudo` é abstrata e `Promocionavel` é uma interface. Explique a diferença de
@@ -162,24 +159,21 @@ propósito entre as duas nesse projeto e o que mudaria no código se o Document�
 passasse a ter promoções — quais classes/linhas seriam tocadas e quais ficariam
 intactas? O que isso diz sobre o design do sistema?
 
-`Conteudo` é uma classe abstrata porque representa um "é um": `Filme`, `Serie` e
-`Documentario` são, por natureza, tipos de conteúdo, compartilham estado (`titulo`,
-`categoria`, `duracaoMinutos`, etc.) e um construtor protegido comum. Já `Promocionavel`
-é uma interface porque representa uma capacidade opcional, um "pode fazer": nem todo
-conteúdo tem promoção, então em vez de forçar isso em `Conteudo`, o projeto deixa cada
-subclasse decidir se implementa `aplicarPromocao(double preco)` — hoje só `Filme faz
-isso (`implements Promocionavel`). O método `calcularPrecoPromocional()` em `Conteudo`
-usa `instanceof Promocionavel` justamente para checar essa capacidade em tempo de
-execução sem acoplar a superclasse a um tipo concreto. Se `Documentario` passasse a ter
-promoções, eu só precisaria: (1) adicionar `implements Promocionavel` na declaração da
-classe `Documentario`, e (2) implementar `aplicarPromocao(double preco)` nela. Nenhuma
-linha de `Conteudo`, `Filme`, `Serie` ou do `ConteudoController` precisaria mudar,
-porque `calcularPrecoPromocional()` já trata qualquer `Promocionavel` de forma
-genérica. Isso mostra um design aberto para extensão e fechado para modificação
-(princípio Open/Closed): a interface permite adicionar um novo comportamento a uma
-classe existente sem tocar no código que já funciona.
-
-_(sua resposta aqui)_
+Conteudo é uma classe abstrata porque representa um "é um": Filme, Serie e
+Documentario são tipos de conteúdo por natureza, compartilham estado (titulo,
+categoria, duracaoMinutos, etc) e um construtor protegido comum. Promocionavel é
+uma interface porque representa uma capacidade opcional, um "pode fazer": nem todo
+conteúdo tem promoção, então em vez de forçar isso em Conteudo, cada subclasse
+decide se implementa aplicarPromocao(double preco) — hoje Filme e Serie fazem isso
+(implements Promocionavel). O método calcularPrecoPromocional() em Conteudo usa
+instanceof Promocionavel pra checar essa capacidade em tempo de execução sem
+acoplar a superclasse a um tipo concreto. Se Documentario passasse a ter promoções,
+eu só precisaria adicionar implements Promocionavel na declaração da classe e
+implementar aplicarPromocao(double preco) nela. Nenhuma linha de Conteudo, Filme,
+Serie ou do ConteudoController mudaria, porque calcularPrecoPromocional() já trata
+qualquer Promocionavel de forma genérica. Isso é design aberto pra extensão e
+fechado pra modificação (Open/Closed): a interface deixa adicionar comportamento
+novo numa classe existente sem tocar no código que já funciona.
 
 ---
 
