@@ -10,7 +10,7 @@
 
 | Campo | |
 |---|---|
-| **Total de bugs corrigidos** | 7 / 12 |
+| **Total de bugs corrigidos** | 8 / 12 |
 | **Total de ajustes de Clean Code** | 0 / 6 |
 
 ---
@@ -29,7 +29,7 @@
 | bug05 | Documentário sempre custava R$ 9,90 no cálculo de aluguel, mas o contrato exige gratuidade | `model/Documentario.java` — a classe não sobrescrevia `calcularPrecoAluguel()`, então herdava o valor fixo `9.90` de `Conteudo` | Adicionei `@Override public double calcularPrecoAluguel() { return 0.0; }` na classe `Documentario` | Herança e override (Aula 7): um bug por ausência de método é mais difícil de notar do que um método com erro, porque a classe parece "limpa" numa leitura rápida |
 | bug06 | O nome do usuário nunca era salvo — vinha sempre nulo depois do cadastro | `model/Usuario.java`, construtor de `Usuario` — a linha `nome = nome` atribuía o parâmetro a ele mesmo, não ao campo da instância (faltava `this.`) | Troquei `nome = nome` por `this.nome = nome` | Shadowing de variável (Aula 3/6): quando o parâmetro do construtor tem o mesmo nome do atributo, é preciso usar `this.` para diferenciar o campo da instância do parâmetro local |
 | bug07 | O sistema recusava aluguéis mesmo quando o usuário tinha créditos de sobra | `model/Usuario.java`, método `temCreditosSuficientes` — a condição era `preco >= this.creditos`, que retorna `true` (tem créditos) justamente quando o preço é maior que o saldo | Troquei `preco >= this.creditos` por `preco <= this.creditos` | Lógica booleana / operadores relacionais (Aula 3): a condição estava com o operador invertido, fazendo o método dizer o oposto do que seu próprio nome promete |
-| bug08 | | | | |
+| bug08 | O método `alugar` nunca checava se o conteúdo estava disponível — dava pra alugar algo marcado como indisponível | `model/Usuario.java`, método `alugar` — faltava uma validação de `c.isDisponivel()` antes de prosseguir com o aluguel | Adicionei `if (!c.isDisponivel()) { throw new ConteudoIndisponivelException(...); }` como primeira checagem do método, antes da classificação etária | Fail Fast / regra de negócio no model (Aula 11): a regra "conteúdo indisponível não se aluga" existia no contrato mas não no código; validar cedo evita processar o resto do método com dado inválido |
 | bug09 | | | | |
 | bug10 | | | | |
 | bug11 | | | | |
