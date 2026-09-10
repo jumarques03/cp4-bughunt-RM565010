@@ -10,7 +10,7 @@
 
 | Campo | |
 |---|---|
-| **Total de bugs corrigidos** | 11 / 12 |
+| **Total de bugs corrigidos** | 12 / 12 |
 | **Total de ajustes de Clean Code** | 0 / 6 |
 
 ---
@@ -33,7 +33,7 @@
 | bug09 | Cadastro de usuário retornava `500 Internal Server Error` sem mensagem clara | `model/Usuario.java`, campo `id` — tinha só `@Id`, sem `@GeneratedValue(strategy = GenerationType.IDENTITY)`, diferente de `Conteudo`. O Hibernate tentava inserir `id = null`, e o Oracle recusava (`ORA-01400: não é possível inserir NULL`) | Adicionei `@GeneratedValue(strategy = GenerationType.IDENTITY)` acima de `@Id`. Também precisei apagar a tabela `usuarios` antiga no Oracle (via DBeaver) e deixar o Hibernate recriá-la, porque `ddl-auto=update` não consegue converter uma coluna existente para IDENTITY | Mapeamento JPA / geração de chave primária (Aula 13): sem `@GeneratedValue`, o JPA espera que o próprio código forneça o id, então salvar uma entidade nova sem id explícito quebra a inserção no banco |
 | bug10 | Tentar alugar um conteúdo com idade insuficiente retornava `500 Internal Server Error` genérico, sem explicar o motivo | `exception/GlobalExceptionHandler.java` — tinha `@ExceptionHandler` para `ConteudoNaoEncontradoException`, `CreditosInsuficientesException` e `ConteudoIndisponivelException`, mas faltava um handler para `ClassificacaoIndicativaException` | Adicionei `@ExceptionHandler(ClassificacaoIndicativaException.class)` retornando `403 Forbidden` com a mensagem da exceção | Tratamento centralizado de exceções (Aula 11 + 13): a exceção existia e era lançada corretamente no model, mas sem um handler registrado o Spring devolve 500 genérico por padrão para qualquer exceção não mapeada |
 | bug11 | Percebi que `AluguelController.alugar` e `Usuario.alugar` precisavam declarar `throws ClassificacaoIndicativaException` desnecessariamente | `exception/ClassificacaoIndicativaException.java` — estendia `Exception` (checked), diferente das outras exceções do projeto (`ConteudoIndisponivelException`, `ConteudoNaoEncontradoException`, `CreditosInsuficientesException`), que estendem `RuntimeException` | Troquei `extends Exception` por `extends RuntimeException` em `ClassificacaoIndicativaException` e removi o `throws ClassificacaoIndicativaException` das assinaturas de `AluguelController.alugar` e `Usuario.alugar` | Exceções checked vs unchecked (Aula 11): inconsistência no padrão de exceções do projeto forçava `throws` desnecessário |
-| bug12 | | | | |
+| bug12 | Ao filtrar conteúdos por categoria, `listarPorCategoria` às vezes não retornava nada mesmo com categorias iguais no texto | `controller/ConteudoController.java`, método `listarPorCategoria` — usava `c.getCategoria() == categoria`, que compara referência de objeto, não o conteúdo do texto | Troquei por `categoria.equals(c.getCategoria())` (usei `categoria` como receptor do `.equals` em vez de `c.getCategoria()` porque o `@PathVariable` nunca é null, evitando NullPointerException caso `getCategoria()` retorne null) | Comparação de objetos em Java (Aula 3): `==` compara referência, `.equals()` compara valor/conteúdo |
 
 ## Parte 2 — Ajustes de Clean Code
 
