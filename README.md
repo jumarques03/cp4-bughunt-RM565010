@@ -11,7 +11,7 @@
 | Campo | |
 |---|---|
 | **Total de bugs corrigidos** | 12 / 12 |
-| **Total de ajustes de Clean Code** | 5 / 6 |
+| **Total de ajustes de Clean Code** | 6 / 6 |
 
 ---
 
@@ -44,7 +44,7 @@
 | clean03 | `UsuarioController.java` e `AluguelController.java` | Consistência de padrão no tratamento de erros do projeto — exceções de domínio específicas em vez de exceções genéricas da linguagem; `IllegalArgumentException` não tinha handler no `GlobalExceptionHandler`, então caía em 500 genérico | Criei `exception/UsuarioNaoEncontradoException.java` (mesmo padrão das outras exceções do projeto), troquei `IllegalArgumentException` por ela em `UsuarioController.buscarPorId` e `AluguelController.alugar`, e adicionei um handler dedicado no `GlobalExceptionHandler` retornando 404 |
 | clean04 | `model/Usuario.java`, método `alugar` | Nomes de variáveis devem ser descritivos, não abreviações de uma letra sem contexto | Renomeei a variável `p` para `precoAluguel` em todas as ocorrências dentro do método `alugar` (declaração, `temCreditosSuficientes`, `debitarCreditos` e o print do recibo) |
 | clean05 | `model/Conteudo.java` e `controller/ConteudoController.java` | Encapsulamento (Aula 3/4) — campos de uma classe devem ser private, expostos apenas via getters/setters; `duracaoMinutos` era o único campo público da classe, permitindo alteração direta sem passar por validação | Troquei `public int duracaoMinutos` por `private int duracaoMinutos` em `Conteudo`; ajustei os acessos diretos `filme.duracaoMinutos`, `serie.duracaoMinutos` e `documentario.duracaoMinutos` em `ConteudoController` para usar `getDuracaoMinutos()` |
-| clean06 | | | |
+| clean06 | `model/Usuario.java`, método `debitarCreditos` | Comentários devem refletir o código corretamente — um comentário errado é pior do que nenhum comentário; o comentário dizia "adiciona", mas o código subtrai | Troquei o comentário para `// subtrai o valor dos créditos do usuário` |
 
 ---
 
