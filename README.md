@@ -11,7 +11,7 @@
 | Campo | |
 |---|---|
 | **Total de bugs corrigidos** | 12 / 12 |
-| **Total de ajustes de Clean Code** | 1 / 6 |
+| **Total de ajustes de Clean Code** | 2 / 6 |
 
 ---
 
@@ -40,7 +40,7 @@
 | # | Onde estava | Qual princípio/boas práticas era violado | O que eu mudei |
 |---|---|---|---|
 | clean01 | `controller/ConteudoController.java`, método `buscarPorId` | Catch vazio nunca deve silenciar erros (Aula 11); método retornava `Conteudo` em vez de `ResponseEntity<Conteudo>` e engolia a exceção com `catch (Exception e) { // TODO: tratar isso depois }`, terminando com `return null` (sucesso vazio disfarçado de 200) | Reescrevi o método para retornar `ResponseEntity<Conteudo>`, removi o try/catch e deixei `ConteudoNaoEncontradoException` subir para o `GlobalExceptionHandler`, que já trata essa exceção retornando 404 |
-| clean02 | | | |
+| clean02 | `controller/ConteudoController.java`, final da classe | Código morto/comentado não deve permanecer no arquivo final — se não é usado, não deveria estar lá | Removi o método privado `calcularDescontoAntigo`, que nunca era chamado em lugar nenhum, e o bloco de código comentado com `TODO` sobre cupons |
 | clean03 | | | |
 | clean04 | | | |
 | clean05 | | | |
